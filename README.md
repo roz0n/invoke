@@ -1,3 +1,3 @@
 # Invoke
 
-An app for responsibly briging people together.
+An app for responsibly briging people together
