@@ -40,21 +40,16 @@ async function postAuthorizationCode(setError, setValue, options = {}) {
 }
 
 async function getUserData(setError, setValue, options = {}) {
-  console.log("CALLED", options)
   try {
-    console.log("INSIDE")
     const getData = await fetch("/auth/linkedin/user", options);
     const response = await getData.json();
-    console.log("getData", response);
 
-    // if (!getData.ok) {
-    //   throw new Error();
-    // } else {
-    //   console.log("user data!", response);
-    //   setValue(response);
-    // }
+    if (!getData.ok) {
+      throw new Error();
+    } else {
+      setValue(response);
+    }
   } catch (error) {
-    console.log("ERROR", error);
     setError(true);
   }
 }
@@ -119,13 +114,6 @@ function Auth({ location }) {
     }
   }, [authorizationCode]);
 
-  // TODO:
-  // We must extract url params here and post with the access token [DONE]
-  // If successful, redirect somewhere can can store the necessary tokens
-  // Maybe a redirect page, or a user profile page, or maybe the former first then the latter
-  // If unsuccessful, redirect somewhere back home and present an error
-
-  console.log("authorization_code:", authorizationCode);
   return (
     <div className="Auth" style={fullPageStyle}>
       {!error ? (
@@ -153,13 +141,20 @@ function User() {
   const [error, setError] = useState(false);
   const [userData, setUserData] = useState(null);
 
+  const logoutUser = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("accessExpiration");
+
+    setUserData(null);
+  };
+
   useEffect(() => {
     if (accessToken) {
       getUserData(setError, setUserData, {
         method: GET,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": accessToken
+          Authorization: accessToken
         }
       });
     } else {
@@ -167,16 +162,19 @@ function User() {
     }
   }, [accessToken]);
 
-  console.log("User data:", userData);
-
   return (
     <div className="User" style={fullPageStyle}>
       {accessToken || !error ? (
         <>
-          <p>User is successfully logged in</p>
-          <small>
-            {accessToken}
-          </small>
+          <div>
+            <span>User is successfully logged in</span>
+            <br />
+            <h1>
+              {userData && userData.localizedFirstName}{" "}
+              {userData && userData.localizedLastName}
+            </h1>
+          </div>
+          <button onClick={logoutUser}>Logout</button>
         </>
       ) : (
         <Redirect to="/" />
