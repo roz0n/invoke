@@ -7,9 +7,9 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
-import { access } from "fs";
-const GET = "GET";
-const POST = "POST";
+import DATA from "./constants/dataConstants";
+
+const { GET, POST } = DATA;
 const SECRET = "Arnaldo was here";
 
 const authEndpoint = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=86n2guu7lpgeen&redirect_uri=http://localhost:3000/auth&state=${SECRET}&scope=r_liteprofile%20r_emailaddress%20w_member_social`;
@@ -187,7 +187,7 @@ function NotFound() {
   return (
     <div className="NotFound" style={fullPageStyle}>
       <h1>404</h1>
-      Can't find that
+      <span>Can't find that</span>
       <Link to="/">Return home</Link>
     </div>
   );
