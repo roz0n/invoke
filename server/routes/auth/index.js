@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 router.post("/signup", function(req, res) {
   bcrypt.hash(req.body.password, 10, function(err, hash) {
     if (err) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: err
       });
     } else {

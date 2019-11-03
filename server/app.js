@@ -93,10 +93,10 @@ app.get("/auth/linkedin/user", async (req, res) => {
   }
 });
 
-app.get("/auth/native/register", async (req, res) => {
+app.post("/auth/native/register", async (req, res) => {
   if (!req.body.password || !req.body.email) {
     return res.status(400).json({ 
-      message: "Invalid registration credentials provided"
+      message: "Insufficient registration credentials provided"
     });
   }
 
@@ -156,7 +156,45 @@ app.get("/auth/native/register", async (req, res) => {
     });
 });
 
-app.get("/auth/native/signin", (req, res) => {
+app.post("/auth/native/signin", (req, res) => {
+  // Find user in DB
+  // Then bcrympt compare against the user's stored hashed password
+  // If result === true, issue JWT
+  User.findOne({ email: req.body.email })
+    .exec()
+    .then(function(user) {
+      bcrypt.compare(req.body.password, user.password, function(err, result) {
+        if (err) {
+          return res.status(401).json({
+            failed: "Unauthorized Access"
+          });
+        }
+        if (result) {
+          const JWTToken = jwt.sign(
+            {
+              email: user.email,
+              _id: user._id
+            },
+            "secret",
+            {
+              expiresIn: "2h"
+            }
+          );
+          return res.status(200).json({
+            success: "Welcome to the JWT Auth",
+            token: JWTToken
+          });
+        }
+        return res.status(401).json({
+          failed: "Unauthorized Access"
+        });
+      });
+    })
+    .catch(error => {
+      res.status(500).json({
+        error: error
+      });
+    });
 });
 
 // serve app
