@@ -4,7 +4,6 @@ const BUNDLE = path.resolve(__dirname, "../client/build", "index.html");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const got = require("got");
-const FormData = require("form-data");
 const passportService = require("./services/passport");
 const passport = require("passport");
 
@@ -27,9 +26,9 @@ app.use(cookieParser());
 app.use("/", express.static(path.join(__dirname, "../client", "build")));
 
 const CLIENT_SECRET = "k36pJmOOISyOeUsn";
+
 app.post("/auth/linkedin", async (req, res) => {
   const { body } = req;
-  const form = new FormData();
   const formBody = {
     grant_type: "authorization_code",
     code: body.authorizationCode,
@@ -53,29 +52,6 @@ app.post("/auth/linkedin", async (req, res) => {
       throw new Error();
     } else {
       accessToken = JSON.parse(reqAccessToken.body);
-
-      // // Get user data
-      // const headers = {
-      //   "Content-type": 'application/json',
-      //   "Authorization": `Bearer ${accessToken.access_token || null}`
-      // };
-
-      // console.log("Headers!", headers);
-
-      // const reqUserData = await got("https://api.linkedin.com/v2/me", {
-      //   headers: JSON.parse(headers)
-      // });
-
-      // console.log("GOT USER DATA....");
-
-      // if (!reqUserData.body) {
-      //   console.log("NO USER DATA FOUND");
-        
-      //   throw new Error();
-      // } else {
-      //   console.log("LINKED IN USER DATA!", reqUserData.body);
-      //   linkedInUser = reqUserData.body;
-      // }
     }
 
     return res.status(200).send({
@@ -86,17 +62,37 @@ app.post("/auth/linkedin", async (req, res) => {
     });
   } catch (error) {
     return res.status(error.statusCode || 500).send({
-      message: error.body || "Error obtaining LinkedIn user data"
+      message: error.body || "Error obtaining LinkedIn access token"
     });
   }
 });
 
-// routes
-// app.use('/', indexRouter);
-// app.use('/users', usersRouter);
+app.get("/auth/linkedin/user", async (req, res) => {
+  const { headers } = req;
+  const { authorization: accessToken } = headers;
 
-// app.use("/api", apiRoutes);
-// app.use("/", authRoutes);
+  try {
+    if (!accessToken) throw new Error();
+    const headers = {
+      "Content-type": "application/json",
+      Authorization: `Bearer ${accessToken}`
+    };
+    const reqUserData = await got("https://api.linkedin.com/v2/me", {
+      headers
+    });
+    const userData = JSON.parse(reqUserData.body);
+
+    if (!userData) {
+      throw new Error();
+    } else {
+      return res.status(200).send(userData);
+    }
+  } catch (error) {
+    return res.status(error.statusCode || 500).send({
+      message: error.body || "Error obtaining LinkedIn user data"
+    });
+  }
+});
 
 // serve app
 app.get("*", (req, res) => res.sendFile(BUNDLE));

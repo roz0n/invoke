@@ -7,6 +7,7 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
+import { access } from "fs";
 const GET = "GET";
 const POST = "POST";
 const SECRET = "Arnaldo was here";
@@ -25,7 +26,7 @@ const fullPageStyle = {
 
 async function postAuthorizationCode(setError, setValue, options = {}) {
   try {
-    const postData = await fetch("/auth/linkedin", { ...options });
+    const postData = await fetch("/auth/linkedin", options);
     const response = await postData.json();
 
     if (!postData.ok) {
@@ -34,6 +35,26 @@ async function postAuthorizationCode(setError, setValue, options = {}) {
       setValue(response);
     }
   } catch (error) {
+    setError(true);
+  }
+}
+
+async function getUserData(setError, setValue, options = {}) {
+  console.log("CALLED", options)
+  try {
+    console.log("INSIDE")
+    const getData = await fetch("/auth/linkedin/user", options);
+    const response = await getData.json();
+    console.log("getData", response);
+
+    // if (!getData.ok) {
+    //   throw new Error();
+    // } else {
+    //   console.log("user data!", response);
+    //   setValue(response);
+    // }
+  } catch (error) {
+    console.log("ERROR", error);
     setError(true);
   }
 }
@@ -96,7 +117,7 @@ function Auth({ location }) {
     } else {
       setError(true);
     }
-  }, []);
+  }, [authorizationCode]);
 
   // TODO:
   // We must extract url params here and post with the access token [DONE]
@@ -111,7 +132,10 @@ function Auth({ location }) {
         <div>Authenticating with LinkedIn...</div>
       ) : (
         <div>
-          Sorry, I couldn't authenticate with LinkedIn. 😔
+          Sorry, I couldn't authenticate with LinkedIn.{" "}
+          <span role="img" aria-label="sad-emoji">
+            😔
+          </span>
           <br />
           <div>
             <Link to="/">Return home?</Link>
@@ -126,19 +150,34 @@ function Auth({ location }) {
 
 function User() {
   const accessToken = window.localStorage.getItem("accessToken");
+  const [error, setError] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    
-  }, [])
+    if (accessToken) {
+      getUserData(setError, setUserData, {
+        method: GET,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": accessToken
+        }
+      });
+    } else {
+      setError(true);
+    }
+  }, [accessToken]);
+
+  console.log("User data:", userData);
 
   return (
     <div className="User" style={fullPageStyle}>
-      {accessToken ? (
-        <h1>
-          <p style={{ width: `100%`, textAlign: "center", margin: "0 2rem" }}>
+      {accessToken || !error ? (
+        <>
+          <p>User is successfully logged in</p>
+          <small>
             {accessToken}
-          </p>
-        </h1>
+          </small>
+        </>
       ) : (
         <Redirect to="/" />
       )}
@@ -153,7 +192,7 @@ function NotFound() {
       Can't find that
       <Link to="/">Return home</Link>
     </div>
-  )
+  );
 }
 
 function Routes() {
@@ -169,5 +208,3 @@ function Routes() {
 }
 
 export default App;
-
-// http://localhost:3000/auth/linkedin/cb?code=AQShMMEdfWNPAJs-_jaKXAri9vfV9CNjdDr6fk7zO9Q_5_gi5AcbawT-Z0aZHlkXJJjXfMNJYAiFEprQrOSZiChodFLpoX-mNn5X4AFeefTQ0noCBSZdprumuqMTYRwEO2c_X7hU8-1U4td0iPKZXLwywvZomYDbbDXSspd1S2trlettqmAN-XZDh5g7-Q&state=fooobar
