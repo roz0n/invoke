@@ -2,9 +2,9 @@
 
 # added by me
 node_modules
-client/.node_modules
+client/node_modules
 client/build/
-server/.node_modules
+server/node_modules
 
 # dependencies
 /node_modules
