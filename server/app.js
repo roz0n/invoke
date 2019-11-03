@@ -4,7 +4,7 @@ const BUNDLE = path.resolve(__dirname, "../client/build", "index.html");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const got = require("got");
-const FormData = require('form-data');
+const FormData = require("form-data");
 const passportService = require("./services/passport");
 const passport = require("passport");
 
@@ -26,37 +26,33 @@ app.use(cookieParser());
 // set public dir for app
 app.use("/", express.static(path.join(__dirname, "../client", "build")));
 
+const CLIENT_SECRET = "k36pJmOOISyOeUsn";
 app.post("/auth/linkedin", async (req, res) => {
   const { body } = req;
-  const SECRET = "Arnaldo was here";
   const form = new FormData();
   const formBody = {
     grant_type: "authorization_code",
-    code:
-      body.authorizationCode,
+    code: body.authorizationCode,
     redirect_uri: "http://localhost:3000/auth",
     client_id: "86n2guu7lpgeen",
-    client_secret: SECRET
+    client_secret: CLIENT_SECRET
   };
 
-  for (const key in formBody) {
-    form.append(key, formBody[key]);
-  }
 
   try {
     const reqAccessToken = await got.post(
       "https://www.linkedin.com/oauth/v2/accessToken",
-      { body: form }
+      {
+        form: true,
+        body: formBody,
+      }
     );
-    
     let accessToken;
 
-    console.log("LinkedIn auth response:", reqAccessToken);
-
-    if (!getToken.body) {
+    if (!reqAccessToken.body) {
       throw new Error();
     } else {
-      accessToken = reqAccessToken.body;
+      accessToken = JSON.parse(reqAccessToken.body);
     }
 
     return res.status(200).send({
@@ -65,7 +61,7 @@ app.post("/auth/linkedin", async (req, res) => {
       expiresIn: accessToken.expires_in
     });
   } catch (error) {
-    return res.status(error.statusCode).send({
+    return res.status(error.statusCode || 500).send({
       message: error.body
     });
   }
