@@ -38,31 +38,55 @@ app.post("/auth/linkedin", async (req, res) => {
     client_secret: CLIENT_SECRET
   };
 
-
   try {
     const reqAccessToken = await got.post(
       "https://www.linkedin.com/oauth/v2/accessToken",
       {
         form: true,
-        body: formBody,
+        body: formBody
       }
     );
-    let accessToken;
+
+    let accessToken, linkedInUser;
 
     if (!reqAccessToken.body) {
       throw new Error();
     } else {
       accessToken = JSON.parse(reqAccessToken.body);
+
+      // // Get user data
+      // const headers = {
+      //   "Content-type": 'application/json',
+      //   "Authorization": `Bearer ${accessToken.access_token || null}`
+      // };
+
+      // console.log("Headers!", headers);
+
+      // const reqUserData = await got("https://api.linkedin.com/v2/me", {
+      //   headers: JSON.parse(headers)
+      // });
+
+      // console.log("GOT USER DATA....");
+
+      // if (!reqUserData.body) {
+      //   console.log("NO USER DATA FOUND");
+        
+      //   throw new Error();
+      // } else {
+      //   console.log("LINKED IN USER DATA!", reqUserData.body);
+      //   linkedInUser = reqUserData.body;
+      // }
     }
 
     return res.status(200).send({
       message: "success",
       accessToken: accessToken.access_token,
-      expiresIn: accessToken.expires_in
+      expiresIn: accessToken.expires_in,
+      userData: linkedInUser
     });
   } catch (error) {
     return res.status(error.statusCode || 500).send({
-      message: error.body
+      message: error.body || "Error obtaining LinkedIn user data"
     });
   }
 });

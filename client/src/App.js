@@ -19,23 +19,22 @@ const fullPageStyle = {
   flexDirection: "column",
   justifyContent: "space-around",
   height: "100vh",
-  width: "100%"
+  maxWidth: "100%",
+  overflowX: "hidden"
 };
 
-async function mockRequest(setError, setValue, options = { method: GET }) {
-  switch (options.method) {
-    case "GET":
-      return fetch("https://swapi.co/api/planets/", { ...options })
-        .then(res => res.json())
-        .then(data => setValue(data))
-        .catch(() => setError(true));
-    case "POST":
-      return fetch("/auth/linkedin", { ...options })
-        .then(res => res.json())
-        .then(data => setValue(data))
-        .catch(() => setError(true));
-    default:
-      break;
+async function postAuthorizationCode(setError, setValue, options = {}) {
+  try {
+    const postData = await fetch("/auth/linkedin", { ...options });
+    const response = await postData.json();
+
+    if (!postData.ok) {
+      throw new Error();
+    } else {
+      setValue(response);
+    }
+  } catch (error) {
+    setError(true);
   }
 }
 
@@ -73,6 +72,13 @@ function Auth({ location }) {
     searchParams.split("code=")[1] &&
     searchParams.split("code=")[1].split("&")[0];
 
+  const storeUserData = data => {
+    window.localStorage.setItem("accessToken", data.accessToken);
+    window.localStorage.setItem("accessExpiration", data.expiresIn);
+
+    setUserData(data);
+  };
+
   useEffect(() => {
     if (authorizationCode) {
       const reqBody = {
@@ -80,11 +86,11 @@ function Auth({ location }) {
         secret: SECRET
       };
 
-      mockRequest(setError, setUserData, {
+      postAuthorizationCode(setError, storeUserData, {
         method: POST,
         body: JSON.stringify(reqBody),
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         }
       });
     } else {
@@ -113,17 +119,41 @@ function Auth({ location }) {
         </div>
       )}
 
-      {userData && <Redirect to="/user" />}
+      {userData && userData.accessToken && <Redirect to="/user" />}
     </div>
   );
 }
 
 function User() {
+  const accessToken = window.localStorage.getItem("accessToken");
+
+  useEffect(() => {
+    
+  }, [])
+
   return (
     <div className="User" style={fullPageStyle}>
-      User!
+      {accessToken ? (
+        <h1>
+          <p style={{ width: `100%`, textAlign: "center", margin: "0 2rem" }}>
+            {accessToken}
+          </p>
+        </h1>
+      ) : (
+        <Redirect to="/" />
+      )}
     </div>
   );
+}
+
+function NotFound() {
+  return (
+    <div className="NotFound" style={fullPageStyle}>
+      <h1>404</h1>
+      Can't find that
+      <Link to="/">Return home</Link>
+    </div>
+  )
 }
 
 function Routes() {
@@ -132,6 +162,8 @@ function Routes() {
       <Route exact path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <Route path="/user" component={User} />
+      <Route path="/user" component={User} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
