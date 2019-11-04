@@ -74,6 +74,10 @@ function Home() {
         <a href={authEndpoint}>
           <button>Sign in with LinkedIn</button>
         </a>
+        
+        <Link to="/signin">
+          <button>Sign in with native-auth</button>
+        </Link>
       </section>
     </div>
   );
@@ -193,13 +197,24 @@ function NotFound() {
   );
 }
 
+function NativeSignIn() {
+  return (
+    <div style={fullPageStyle}>
+      Native sign in
+      <section>
+        Form here
+      </section>
+    </div>
+  )
+}
+
 function Routes() {
   return (
     <Switch>
       <Route exact path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <Route path="/user" component={User} />
-      <Route path="/user" component={User} />
+      <Route path="/signin" component={NativeSignIn} />
       <Route component={NotFound} />
     </Switch>
   );
