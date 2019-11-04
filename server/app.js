@@ -8,6 +8,7 @@ const got = require("got");
 const bcrypt = require("bcrypt");
 const User = require("./models/User");
 const jwt = require("jsonwebtoken");
+const AuthService = require("./services/Auth");
 
 // Config
 const config = require("./config");
@@ -15,6 +16,7 @@ const config = require("./config");
 // Mongo deps
 const mongoose = require("mongoose");
 const MONGO_URI = "mongodb://localhost:27017/invoke-alpha";
+
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -26,11 +28,14 @@ app.use(logger("combined"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// app.use(AuthService.jwtMiddleware);
+
+app.get("/test", (req, res) => {
+  res.send({ test: "123" })
+})
 
 // set public dir for app
 app.use("/", express.static(path.join(__dirname, "../client", "build")));
-
-const LINKEDIN_CLIENT_SECRET = "k36pJmOOISyOeUsn";
 
 app.post("/auth/linkedin", async (req, res) => {
   const { body } = req;
@@ -39,7 +44,7 @@ app.post("/auth/linkedin", async (req, res) => {
     code: body.authorizationCode,
     redirect_uri: "http://localhost:3000/auth",
     client_id: "86n2guu7lpgeen",
-    client_secret: LINKEDIN_CLIENT_SECRET
+    client_secret: config.linkedInSecret
   };
 
   try {
