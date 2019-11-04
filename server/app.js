@@ -9,6 +9,9 @@ const bcrypt = require("bcrypt");
 const User = require("./models/User");
 const jwt = require("jsonwebtoken");
 
+// Config
+const config = require("./config");
+
 // Mongo deps
 const mongoose = require("mongoose");
 const MONGO_URI = "mongodb://localhost:27017/invoke-alpha";
@@ -179,7 +182,7 @@ app.post("/auth/native/signin", async (req, res) => {
           email: user.email,
           _id: user._id
         },
-        "secret",
+        config.jwtSecret,
         {
           expiresIn: "2h"
         }
