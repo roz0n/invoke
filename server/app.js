@@ -10,9 +10,12 @@ const User = require("./models/User");
 const jwt = require("jsonwebtoken");
 
 // Mongo deps
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const MONGO_URI = "mongodb://localhost:27017/invoke-alpha";
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 const app = express();
 
@@ -95,7 +98,7 @@ app.get("/auth/linkedin/user", async (req, res) => {
 
 app.post("/auth/native/register", async (req, res) => {
   if (!req.body.password || !req.body.email) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       message: "Insufficient registration credentials provided"
     });
   }
@@ -113,7 +116,7 @@ app.post("/auth/native/register", async (req, res) => {
   }
 
   try {
-    bcrypt.hash(req.body.password, 10, async function (error, hash) {
+    bcrypt.hash(req.body.password, 10, async function(error, hash) {
       if (error) {
         return res.status(500).json({
           message: "Error creating new user"
@@ -127,7 +130,7 @@ app.post("/auth/native/register", async (req, res) => {
       });
 
       const saveUserResult = await newUser.save();
-      
+
       if (saveUserResult) {
         // TODO: issue JWT here
         res.status(200).json({
@@ -138,7 +141,7 @@ app.post("/auth/native/register", async (req, res) => {
         return res.status(500).json({
           message: "Error creating new user"
         });
-      }    
+      }
     });
   } catch (error) {
     return res.status(500).json({
@@ -147,45 +150,51 @@ app.post("/auth/native/register", async (req, res) => {
   }
 });
 
-app.post("/auth/native/signin", (req, res) => {
-  // Find user in DB
-  // Then bcrympt compare against the user's stored hashed password
-  // If result === true, issue JWT
-  User.findOne({ email: req.body.email })
-    .exec()
-    .then(function(user) {
-      bcrypt.compare(req.body.password, user.password, function(err, result) {
-        if (err) {
-          return res.status(401).json({
-            failed: "Unauthorized Access"
-          });
-        }
-        if (result) {
-          const JWTToken = jwt.sign(
-            {
-              email: user.email,
-              _id: user._id
-            },
-            "secret",
-            {
-              expiresIn: "2h"
-            }
-          );
-          return res.status(200).json({
-            success: "Welcome to the JWT Auth",
-            token: JWTToken
-          });
-        }
-        return res.status(401).json({
-          failed: "Unauthorized Access"
+app.post("/auth/native/signin", async (req, res) => {
+  if (!req.body.password || !req.body.email) {
+    return res.status(400).json({
+      message: "Invalid credentials provided"
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user || !user.password) {
+      throw new Error();
+    }
+
+    bcrypt.compare(req.body.password, user.password, async function(
+      error,
+      result
+    ) {
+      if (error) {
+        return res.status(500).json({
+          failed: "Server error attempting to login user"
         });
-      });
-    })
-    .catch(error => {
-      res.status(500).json({
-        error: error
+      }
+
+      const jwtToken = jwt.sign(
+        {
+          email: user.email,
+          _id: user._id
+        },
+        "secret",
+        {
+          expiresIn: "2h"
+        }
+      );
+
+      return res.status(200).json({
+        message: "success",
+        token: jwtToken
       });
     });
+  } catch (error) {
+    return res.status(401).json({
+      failed: "Unauthorized access, error locating user"
+    });
+  }
 });
 
 // serve app
