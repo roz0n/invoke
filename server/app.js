@@ -100,60 +100,51 @@ app.post("/auth/native/register", async (req, res) => {
     });
   }
 
-  // Check if email in use
-  // If not proceed with...
-  User.findOne({ email: req.body.email })
-    .exec()
-    .then(function(user) {
-      if (user) {
-        return res.status(400).json({
-          message: "A user already exists with that email address"
+  try {
+    const findUser = await User.findOne({ email: req.body.email });
+
+    if (!findUser) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(400).json({
+      message: "A user already exists with that email address"
+    });
+  }
+
+  try {
+    bcrypt.hash(req.body.password, 10, async function (error, hash) {
+      if (error) {
+        return res.status(500).json({
+          message: "Error creating new user"
         });
       }
 
-      // Hashing of password
-      // Creating a new User();
-      // Saving them to the db
-      // Returning a JWT
-      bcrypt.hash(req.body.password, 10, function(err, hash) {
-        if (err) {
-          // Denotes bcrypt error
-          return res.status(500).json({
-            message: "Error creating new user"
-          });
-        } else {
-          const newUser = new User({
-            _id: new mongoose.Types.ObjectId(),
-            email: req.body.email,
-            password: hash
-          });
-
-          newUser
-            .save()
-            .then(function(result) {
-              console.log("** New user created: **", result);
-
-              // Issue JWT here
-              res.status(200).json({
-                success: "New user created successfully",
-                token: null
-              });
-            })
-            .catch(error => {
-              // Denotes mongo error
-              return res.status(500).json({
-                message: "Error saving new user"
-              });
-            });
-        }
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId(),
+        email: req.body.email,
+        password: hash
       });
-      // End bcrypt
-    })
-    .catch(error => {
-      return res.status(500).json({
-        message: "Error creating new user"
-      });
+
+      const saveUserResult = await newUser.save();
+      
+      if (saveUserResult) {
+        // TODO: issue JWT here
+        res.status(200).json({
+          success: "New user created successfully",
+          token: null
+        });
+      } else {
+        return res.status(500).json({
+          message: "Error creating new user"
+        });
+      }    
     });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error creating new user"
+    });
+  }
 });
 
 app.post("/auth/native/signin", (req, res) => {
