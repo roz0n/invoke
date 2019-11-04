@@ -7,6 +7,7 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
+import useForm from 'react-hook-form';
 import DATA from "./constants/dataConstants";
 
 const { GET, POST } = DATA;
@@ -74,7 +75,7 @@ function Home() {
         <a href={authEndpoint}>
           <button>Sign in with LinkedIn</button>
         </a>
-        
+
         <Link to="/signin">
           <button>Sign in with native-auth</button>
         </Link>
@@ -201,11 +202,64 @@ function NativeSignIn() {
   return (
     <div style={fullPageStyle}>
       Native sign in
+
       <section>
-        Form here
+        Login
+        <LoginForm />
       </section>
+
+      <Link to="/register">Register an account</Link>
     </div>
   )
+}
+
+function NativeRegister() {
+  return (
+    <div style={fullPageStyle}>
+      Native registration
+
+      <section>
+        Register
+        <RegisterForm />
+      </section>
+
+      <Link to="/signin">Sign in instead</Link>
+      <Link to="/">Return home</Link>
+    </div>
+  )
+}
+
+function RegisterForm() {
+  const { register, handleSubmit, errors } = useForm();
+  const onSubmit = data => console.log(data);
+  console.log(errors);
+  
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input type="text" placeholder="Username" name="Username" ref={register({max: 16, min: 3})} />
+      <input type="email" placeholder="Email" name="Email" ref={register} />
+      <input type="text" placeholder="Confirm email" name="Confirm email" ref={register} />
+      <input type="text" placeholder="Password" name="Password" ref={register} />
+      <input type="text" placeholder="Confirm Password" name="Confirm Password" ref={register} />
+
+      <input type="submit" />
+    </form>
+  );
+}
+
+function LoginForm() {
+  const { register, handleSubmit, errors } = useForm();
+  const onSubmit = data => console.log(data);
+  console.log(errors);
+  
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input type="text" placeholder="Username or email" name="Username or email" ref={register({max: 50, min: 3})} />
+      <input type="text" placeholder="Password" name="Password" ref={register} />
+
+      <input type="submit" />
+    </form>
+  );
 }
 
 function Routes() {
@@ -215,6 +269,7 @@ function Routes() {
       <Route path="/auth" component={Auth} />
       <Route path="/user" component={User} />
       <Route path="/signin" component={NativeSignIn} />
+      <Route path="/register" component={NativeRegister} />
       <Route component={NotFound} />
     </Switch>
   );
