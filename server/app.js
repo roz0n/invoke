@@ -3,38 +3,25 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const got = require("got");
-
-// Auth deps
 const bcrypt = require("bcrypt");
 const User = require("./models/User");
 const jwt = require("jsonwebtoken");
 const AuthService = require("./services/Auth");
-
-// Config
 const config = require("./config");
-
-// Mongo deps
 const mongoose = require("mongoose");
 const MONGO_URI = "mongodb://localhost:27017/invoke-alpha";
+const app = express();
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
 
-const app = express();
-
 app.use(logger("combined"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // app.use(AuthService.jwtMiddleware);
-
-app.get("/test", (req, res) => {
-  res.send({ test: "123" })
-})
-
-// set public dir for app
 app.use("/", express.static(path.join(__dirname, "../client", "build")));
 
 app.post("/auth/linkedin", async (req, res) => {

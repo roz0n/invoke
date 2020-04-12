@@ -5,14 +5,12 @@ import {
   Switch,
   Route,
   Link,
-  Redirect
+  Redirect,
 } from "react-router-dom";
-import useForm from 'react-hook-form';
+import useForm from "react-hook-form";
 import DATA from "./constants/dataConstants";
-
 const { GET, POST } = DATA;
 const SECRET = "Arnaldo was here";
-
 const authEndpoint = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=86n2guu7lpgeen&redirect_uri=http://localhost:3000/auth&state=${SECRET}&scope=r_liteprofile%20r_emailaddress%20w_member_social`;
 
 const fullPageStyle = {
@@ -22,7 +20,7 @@ const fullPageStyle = {
   justifyContent: "space-around",
   height: "100vh",
   maxWidth: "100%",
-  overflowX: "hidden"
+  overflowX: "hidden",
 };
 
 async function postAuthorizationCode(setError, setValue, options = {}) {
@@ -93,7 +91,7 @@ function Auth({ location }) {
     searchParams.split("code=")[1] &&
     searchParams.split("code=")[1].split("&")[0];
 
-  const storeUserData = data => {
+  const storeUserData = (data) => {
     window.localStorage.setItem("accessToken", data.accessToken);
     window.localStorage.setItem("accessExpiration", data.expiresIn);
 
@@ -104,15 +102,15 @@ function Auth({ location }) {
     if (authorizationCode) {
       const reqBody = {
         authorizationCode,
-        secret: SECRET
+        secret: SECRET,
       };
 
       postAuthorizationCode(setError, storeUserData, {
         method: POST,
         body: JSON.stringify(reqBody),
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
     } else {
       setError(true);
@@ -159,8 +157,8 @@ function User() {
         method: GET,
         headers: {
           "Content-Type": "application/json",
-          Authorization: accessToken
-        }
+          Authorization: accessToken,
+        },
       });
     } else {
       setError(true);
@@ -202,45 +200,60 @@ function NativeSignIn() {
   return (
     <div style={fullPageStyle}>
       Native sign in
-
       <section>
         Login
         <LoginForm />
       </section>
-
       <Link to="/register">Register an account</Link>
     </div>
-  )
+  );
 }
 
 function NativeRegister() {
   return (
     <div style={fullPageStyle}>
       Native registration
-
       <section>
         Register
         <RegisterForm />
       </section>
-
       <Link to="/signin">Sign in instead</Link>
       <Link to="/">Return home</Link>
     </div>
-  )
+  );
 }
 
 function RegisterForm() {
   const { register, handleSubmit, errors } = useForm();
-  const onSubmit = data => console.log(data);
-  console.log(errors);
-  
+  const onSubmit = (data) => console.log(data);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <input type="text" placeholder="Username" name="Username" ref={register({max: 16, min: 3})} />
+      <input
+        type="text"
+        placeholder="Username"
+        name="Username"
+        ref={register({ max: 16, min: 3 })}
+      />
       <input type="email" placeholder="Email" name="Email" ref={register} />
-      <input type="text" placeholder="Confirm email" name="Confirm email" ref={register} />
-      <input type="text" placeholder="Password" name="Password" ref={register} />
-      <input type="text" placeholder="Confirm Password" name="Confirm Password" ref={register} />
+      <input
+        type="text"
+        placeholder="Confirm email"
+        name="Confirm email"
+        ref={register}
+      />
+      <input
+        type="text"
+        placeholder="Password"
+        name="Password"
+        ref={register}
+      />
+      <input
+        type="text"
+        placeholder="Confirm Password"
+        name="Confirm Password"
+        ref={register}
+      />
 
       <input type="submit" />
     </form>
@@ -249,13 +262,22 @@ function RegisterForm() {
 
 function LoginForm() {
   const { register, handleSubmit, errors } = useForm();
-  const onSubmit = data => console.log(data);
-  console.log(errors);
-  
+  const onSubmit = (data) => console.log(data);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <input type="text" placeholder="Username or email" name="Username or email" ref={register({max: 50, min: 3})} />
-      <input type="text" placeholder="Password" name="Password" ref={register} />
+      <input
+        type="text"
+        placeholder="Username or email"
+        name="Username or email"
+        ref={register({ max: 50, min: 3 })}
+      />
+      <input
+        type="text"
+        placeholder="Password"
+        name="Password"
+        ref={register}
+      />
 
       <input type="submit" />
     </form>
