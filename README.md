@@ -1,3 +1,3 @@
 # Invoke
 
-An app for responsibly briging people together
+A fullstack React app template with native and third-party auth baked in
